@@ -1,7 +1,7 @@
 # Личный проект «Кексобукинг» [![Build status][travis-image]][travis-url]
 
 * Студент: [Николай Бурков](https://up.htmlacademy.ru/javascript/13/user/432743).
-* Наставник: `Неизвестно`.
+* Наставник: [Андрей Карякин].
 
 ---
 
