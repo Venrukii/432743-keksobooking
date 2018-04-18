@@ -1,7 +1,8 @@
 'use strict';
 
 var MAX_CARDS = 8;
-var PIN_SIZE = 40;
+var PIN_WIDTH = 40;
+var PIN_HEIGHT = 44;
 var PRICE_MIN = 1000;
 var PRICE_MAX = 1000000;
 var ROOMS_MIN = 1;
@@ -49,15 +50,11 @@ var getRandomNumber = function (min, max) {
   return Math.floor(Math.random() * (max - min) + min);
 };
 
-//Генерация одного случайного объекта объявления
+//Генерация одного случайного объекта (карточки) объявления
 
 var generateOneCard = function(index) {
-  var newObj = {};
-  var author = {
-    'avatar': 'img/avatars/user0' + (index + 1) +'.png'
-  };
 
-  var addressCoordinates = {
+    var addressCoordinates = {
     'coordinateX': getRandomNumber(300, 900),
     'coordinateY': getRandomNumber(150, 500)
   };
@@ -69,7 +66,12 @@ var generateOneCard = function(index) {
     features[i] = featuresList[i];
   }
 
-  var offer = {
+  var newObj = {
+     author: {
+    'avatar': 'img/avatars/user0' + (index + 1) +'.png'
+  },
+
+   offer: {
     'title': apartmentTypes[index],
     'address': addressCoordinates,
     'price': getRandomNumber(PRICE_MIN, PRICE_MAX),
@@ -81,76 +83,52 @@ var generateOneCard = function(index) {
     'features': features,
     'description': '',
     'photos': photos
-  };
+  },
 
-  var location = {
+   location: {
     'x': addressCoordinates.coordinateX,
     'y': addressCoordinates.coordinateY
-  };
-
-  newObj['author'] = author;
-  newObj['offer'] = offer;
-  newObj['location'] = location;
-
+  }
+ };
   return newObj;
 };
 
-// Собрали объекты в массив
+// Собираем объекты в массив
 
-var generateCardsArr = function(cardsMax) {
   var cardsData = [];
   for (var i = 0; i < MAX_CARDS; i++) {
   cardsData.push(generateOneCard(i));
   }
-  return cardsData;
-};
 
- //Убираем класс map--faded
+
+
+//Активируем интерактивную карту
 
 document.querySelector('.map.map--faded').classList.remove('map--faded');
 
 
-//Создаем метки на карте на основе массива данных
+//Создаем метки на карте на основе массива данных объявлений и отрисовываем их
 
-var generateOnePin = function (cardsData) {
-  var mapPin = document.createElement('button');
-  var pinImg = document.createElement('img');
+var pinsArea = document.querySelector('.map__pins');
+var mapPinTemplate = document.querySelector('template').content.querySelector('.map__pin');
+var pinFragment = document.createDocumentFragment();
 
-  mapPin.classList.add('map__pin');
-  mapPin.style.left = cardsData.location.x - PIN_SIZE / 2 + 'px';
-  mapPin.style.top = cardsData.location.y + PIN_SIZE + 'px';
-
-  pinImg.src = cardsData.author.avatar;
-  pinImg.alt = cardsData.offer.title;
-
-  mapPin.appendChild(pinImg);
-
-  return mapPin;
+var generateOnePin = function (index) {
+   var pinElement = mapPinTemplate.cloneNode(true);
+    pinElement.style = 'left: ' + (cardsData[index].location.x - PIN_WIDTH / 2) + 'px; top: ' + (cardsData[index].location.y + PIN_HEIGHT / 2) + 'px;';
+    pinElement.querySelector('img').alt = cardsData[index].offer.title;
+    pinElement.querySelector('img').src = cardsData[index].author.avatar;
+  return pinElement;
 };
 
-//Отрисовываем метки на карте
 
 var drawMapPins = function (pinMax) {
-  var pinsArea = document.querySelector('.map__pins');
-  var pinFragment = document.createDocumentFragment();
-
   for (var i = 0; i < pinMax; i++) {
-    pinFragment.appendChild(generateOnePin(generateCardsArr(i)));
+    pinFragment.appendChild(generateOnePin(i));
+     pinsArea.appendChild(pinFragment);
   }
-
-  pinsArea.appendChild(pinFragment);
 };
 
-
-drawMapPins(MAX_CARDS);
-
-
-
-
-
-
-
-
-
+drawMapPins(MAX_CARDS); //проверим отрисовку
 
 
