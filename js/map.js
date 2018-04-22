@@ -13,6 +13,19 @@ var MIN_X = 300;
 var MAX_X = 900;
 var MIN_Y = 150;
 var MAX_Y = 500;
+var cardsData = [];
+var pinsArea = document.querySelector('.map__pins');
+var mapPinTemplate = document.querySelector('template').content.querySelector('.map__pin');
+var pinFragment = document.createDocumentFragment();
+var mapCardTemplate = document.querySelector('template').content.querySelector('.map__card');
+
+var propertyTypesConvert = {
+  palace: 'Дворец',
+  flat: 'Квартира',
+  house: 'Дом',
+  bungalo: 'Бунгало'
+}
+
 
 var propertyTypes = [
   'palace',
@@ -104,7 +117,6 @@ var generateOneCard = function (index) {
 };
 
 // Собираем объекты в массив
-var cardsData = [];
 for (var i = 0; i < MAX_CARDS; i++) {
   cardsData.push(generateOneCard(i));
 }
@@ -115,10 +127,6 @@ document.querySelector('.map.map--faded').classList.remove('map--faded');
 
 
 // Создаем метки на карте на основе массива данных объявлений и отрисовываем их
-
-var pinsArea = document.querySelector('.map__pins');
-var mapPinTemplate = document.querySelector('template').content.querySelector('.map__pin');
-var pinFragment = document.createDocumentFragment();
 
 var generateOnePin = function (index) {
   var pinElement = mapPinTemplate.cloneNode(true);
@@ -139,32 +147,16 @@ drawMapPins(MAX_CARDS);
 pinsArea.appendChild(pinFragment);
 
 
-// Отрисовываем карточку объявления
 
-var mapCardTemplate = document.querySelector('template').content.querySelector('.map__card');
-
-// Функция перевода типов недвижимости в русские названия
-
-var propertyTypesConverter = function (offerType) {
-  if (offerType === 'palace') {
-    return 'Дворец';
-  } else if (offerType === 'flat') {
-    return 'Квартира';
-  } else if (offerType === 'house') {
-    return 'Дом';
-  } else {
-    return 'Бунгало';
-  }
-};
 
 var generateAdvertCard = function (cardsArr) {
   var generatedCard = mapCardTemplate.cloneNode(true);
   generatedCard.querySelector('.popup__title').textContent = cardsArr.offer.title;
-  generatedCard.querySelector('.popup__title').textContent = cardsArr.offer.address;
+  generatedCard.querySelector('.popup__text--address').textContent = cardsArr.offer.address;
   generatedCard.querySelector('.popup__text--price').textContent = cardsArr.offer.price + '₽/ночь';
-  generatedCard.querySelector('.popup__type').textContent = propertyTypesConverter(cardsArr.offer.type);
+  generatedCard.querySelector('.popup__type').textContent = propertyTypesConvert[cardsArr.offer.type];
   generatedCard.querySelector('.popup__text--capacity').textContent = cardsArr.offer.rooms + 'комнаты для ' + cardsArr.offer.guests + 'гостей';
-  generatedCard.querySelector('.popup__text--time').textContent = 'Заезд после' + cardsArr.offer.checkin + ', выезд до' + cardsArr.offer.checkout;
+  generatedCard.querySelector('.popup__text--time').textContent = 'Заезд после ' + cardsArr.offer.checkin + ', выезд до ' + cardsArr.offer.checkout;
   generatedCard.querySelector('.popup__avatar').src = cardsArr.author.avatar;
 
   var popupFeatures = generatedCard.querySelector('.popup__features');
@@ -183,15 +175,17 @@ var generateAdvertCard = function (cardsArr) {
   var popupPhotos = generatedCard.querySelector('.popup__photos');
   var photoFragment = document.createDocumentFragment();
   popupPhotos.innerHTML = '';
-  for (var j = 0; j < cardsArr.offer.photos.length; j++) {
+
+//  for (var j = 0; j < cardsArr.offer.photos.length; j++) 
+    cardsArr.offer.photos.forEach(function(t) {
     var photoItem = document.createElement('img');
     photoItem.className = 'popup__photo';
     photoItem.style.width = '45px';
     photoItem.style.height = '40px';
-    photoItem.src = cardsArr.offer.photos[j];
+    photoItem.src = cardsArr.offer.photos[t];
     photoItem.draggable = 'false';
     photoFragment.appendChild(photoItem);
-  }
+  });
   popupPhotos.appendChild(photoFragment);
   return generatedCard;
 };
