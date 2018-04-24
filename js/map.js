@@ -24,7 +24,7 @@ var propertyTypesConvert = {
   flat: 'Квартира',
   house: 'Дом',
   bungalo: 'Бунгало'
-}
+};
 
 
 var propertyTypes = [
@@ -84,12 +84,8 @@ var generateOneCard = function (index) {
   var checkIn = checkinTime[getRandomNumber(0, 3)];
   var checkOut = checkIn;
 
-  var features = [];
   var featuresCount = getRandomNumber(0, featuresList.length);
-
-  for (var i = 0; i < featuresCount; i++) {
-    features[i] = featuresList[i];
-  }
+  var features = featuresList.slice(0, featuresCount);
 
   var newObj = {
     author: {
@@ -117,9 +113,12 @@ var generateOneCard = function (index) {
 };
 
 // Собираем объекты в массив
-for (var i = 0; i < MAX_CARDS; i++) {
-  cardsData.push(generateOneCard(i));
-}
+var generateCardsArr = function (cardsNumber) {
+  for (var i = 0; i < cardsNumber; i++) {
+    cardsData.push(generateOneCard(i));
+  }
+  return cardsData;
+};
 
 // Активируем интерактивную карту
 
@@ -128,26 +127,25 @@ document.querySelector('.map.map--faded').classList.remove('map--faded');
 
 // Создаем метки на карте на основе массива данных объявлений и отрисовываем их
 
-var generateOnePin = function (index) {
+var generateOnePin = function (offerData) {
   var pinElement = mapPinTemplate.cloneNode(true);
-  pinElement.style = 'left: ' + (cardsData[index].location.x - PIN_WIDTH / 2) + 'px; top: ' + (cardsData[index].location.y + PIN_HEIGHT / 2) + 'px;';
-  pinElement.querySelector('img').alt = cardsData[index].offer.title;
-  pinElement.querySelector('img').src = cardsData[index].author.avatar;
+  pinElement.style = 'left: ' + (offerData.location.x - PIN_WIDTH / 2) + 'px; top: ' + (offerData.location.y + PIN_HEIGHT / 2) + 'px;';
+  pinElement.querySelector('img').alt = offerData.offer.title;
+  pinElement.querySelector('img').src = offerData.author.avatar;
   return pinElement;
 };
 
-
-var drawMapPins = function (pinMax) {
-  for (var j = 0; j < pinMax; j++) {
-    pinFragment.appendChild(generateOnePin(j));
-  }
+var drawMapPins = function (pins) {
+  pins.forEach(function (item, i) {
+    pinFragment.appendChild(generateOnePin(item, i));
+  });
+  return pinFragment;
 };
 
-drawMapPins(MAX_CARDS);
+drawMapPins(generateCardsArr(MAX_CARDS));
 pinsArea.appendChild(pinFragment);
 
-
-
+// Генерация карточки объявления
 
 var generateAdvertCard = function (cardsArr) {
   var generatedCard = mapCardTemplate.cloneNode(true);
@@ -176,13 +174,12 @@ var generateAdvertCard = function (cardsArr) {
   var photoFragment = document.createDocumentFragment();
   popupPhotos.innerHTML = '';
 
-//  for (var j = 0; j < cardsArr.offer.photos.length; j++) 
-    cardsArr.offer.photos.forEach(function(t) {
+  cardsArr.offer.photos.forEach(function (feature, k) {
     var photoItem = document.createElement('img');
     photoItem.className = 'popup__photo';
     photoItem.style.width = '45px';
     photoItem.style.height = '40px';
-    photoItem.src = cardsArr.offer.photos[t];
+    photoItem.src = cardsArr.offer.photos[k];
     photoItem.draggable = 'false';
     photoFragment.appendChild(photoItem);
   });
