@@ -13,11 +13,10 @@ var MIN_X = 300;
 var MAX_X = 900;
 var MIN_Y = 150;
 var MAX_Y = 500;
-var cardsData = [];
 var pinsArea = document.querySelector('.map__pins');
 var mapPinTemplate = document.querySelector('template').content.querySelector('.map__pin');
-var pinFragment = document.createDocumentFragment();
 var mapCardTemplate = document.querySelector('template').content.querySelector('.map__card');
+var generatedCard = mapCardTemplate.cloneNode(true);
 
 var propertyTypesConvert = {
   palace: 'Дворец',
@@ -85,7 +84,7 @@ var generateOneCard = function (index) {
   var checkOut = checkIn;
 
   var featuresCount = getRandomNumber(0, featuresList.length);
-  var features = featuresList.slice(0, featuresCount);
+  var features = featuresList.slice(0, featuresCount + 1);
 
   var newObj = {
     author: {
@@ -113,42 +112,61 @@ var generateOneCard = function (index) {
 };
 
 // Собираем объекты в массив
-var generateCardsArr = function (cardsNumber) {
+var getAdsList = function (cardsNumber) {
+  var cardsData = [];
   for (var i = 0; i < cardsNumber; i++) {
     cardsData.push(generateOneCard(i));
   }
   return cardsData;
 };
 
-// Активируем интерактивную карту
-
-document.querySelector('.map.map--faded').classList.remove('map--faded');
-
-
 // Создаем метки на карте на основе массива данных объявлений и отрисовываем их
 
 var generateOnePin = function (offerData) {
   var pinElement = mapPinTemplate.cloneNode(true);
-  pinElement.style = 'left: ' + (offerData.location.x - PIN_WIDTH / 2) + 'px; top: ' + (offerData.location.y + PIN_HEIGHT / 2) + 'px;';
+  pinElement.style = 'left: ' + (offerData.location.x - PIN_WIDTH / 2) + 'px; top: ' + (offerData.location.y + PIN_HEIGHT) + 'px;';
   pinElement.querySelector('img').alt = offerData.offer.title;
   pinElement.querySelector('img').src = offerData.author.avatar;
   return pinElement;
 };
 
-var drawMapPins = function (pins) {
+var renderPins = function (pins) {
+  var pinFragment = document.createDocumentFragment();
   pins.forEach(function (item, i) {
     pinFragment.appendChild(generateOnePin(item, i));
   });
   return pinFragment;
 };
 
-drawMapPins(generateCardsArr(MAX_CARDS));
-pinsArea.appendChild(pinFragment);
+var pins = renderPins(getAdsList(MAX_CARDS));
 
 // Генерация карточки объявления
 
-var generateAdvertCard = function (cardsArr) {
-  var generatedCard = mapCardTemplate.cloneNode(true);
+var renderFeatures = function (features) {
+  var featuresFragment = document.createDocumentFragment();
+  for (var t = 0; t < features.offer.features.length; t++) {
+    var featureListItem = document.createElement('li');
+    featureListItem.className = 'popup__feature popup__feature--' + features.offer.features[t];
+    featuresFragment.appendChild(featureListItem);
+  }
+  return featuresFragment;
+};
+
+var renderPhoto = function (photoData) {
+  var photoFragment = document.createDocumentFragment();
+  photoData.offer.photos.forEach(function (feature, k) {
+    var photoItem = document.createElement('img');
+    photoItem.className = 'popup__photo';
+    photoItem.style.width = '45px';
+    photoItem.style.height = '40px';
+    photoItem.src = photoData.offer.photos[k];
+    photoItem.draggable = 'false';
+    photoFragment.appendChild(photoItem);
+  });
+  return photoFragment;
+};
+
+var renderCard = function (cardsArr) {
   generatedCard.querySelector('.popup__title').textContent = cardsArr.offer.title;
   generatedCard.querySelector('.popup__text--address').textContent = cardsArr.offer.address;
   generatedCard.querySelector('.popup__text--price').textContent = cardsArr.offer.price + '₽/ночь';
@@ -156,41 +174,34 @@ var generateAdvertCard = function (cardsArr) {
   generatedCard.querySelector('.popup__text--capacity').textContent = cardsArr.offer.rooms + 'комнаты для ' + cardsArr.offer.guests + 'гостей';
   generatedCard.querySelector('.popup__text--time').textContent = 'Заезд после ' + cardsArr.offer.checkin + ', выезд до ' + cardsArr.offer.checkout;
   generatedCard.querySelector('.popup__avatar').src = cardsArr.author.avatar;
-
-  var popupFeatures = generatedCard.querySelector('.popup__features');
-  var featuresFragment = document.createDocumentFragment();
-  popupFeatures.innerHTML = '';
-
-  for (var t = 0; t < cardsArr.offer.features.length; t++) {
-    var featureListItem = document.createElement('li');
-    featureListItem.className = 'popup__feature popup__feature--' + cardsArr.offer.features[t];
-    featuresFragment.appendChild(featureListItem);
-  }
-  popupFeatures.appendChild(featuresFragment);
-
   generatedCard.querySelector('.popup__description').textContent = cardsArr.offer.description;
 
-  var popupPhotos = generatedCard.querySelector('.popup__photos');
-  var photoFragment = document.createDocumentFragment();
-  popupPhotos.innerHTML = '';
+  var popupFeatures = generatedCard.querySelector('.popup__features');
+  popupFeatures.innerHTML = '';
+  popupFeatures.appendChild(renderFeatures(cardsArr));
 
-  cardsArr.offer.photos.forEach(function (feature, k) {
-    var photoItem = document.createElement('img');
-    photoItem.className = 'popup__photo';
-    photoItem.style.width = '45px';
-    photoItem.style.height = '40px';
-    photoItem.src = cardsArr.offer.photos[k];
-    photoItem.draggable = 'false';
-    photoFragment.appendChild(photoItem);
-  });
-  popupPhotos.appendChild(photoFragment);
+
+  var popupPhotos = generatedCard.querySelector('.popup__photos');
+  popupPhotos.innerHTML = '';
+  popupPhotos.appendChild(renderPhoto(cardsArr));
+
   return generatedCard;
 };
 
 var insertAdvertCard = function () {
   var mapFiltersContainer = document.querySelector('.map__filters-container');
-  document.querySelector('.map').insertBefore(generateAdvertCard(cardsData[0]), mapFiltersContainer);
+  document.querySelector('.map').insertBefore(renderCard(getAdsList(MAX_CARDS)[0]), mapFiltersContainer);
 };
 
-generateAdvertCard(cardsData[0]);
-insertAdvertCard();
+// Активируем интерактивную карту
+document.querySelector('.map.map--faded').classList.remove('map--faded');
+
+// Вызовы функций
+var functionCall = function () {
+  pinsArea.appendChild(pins);
+  renderCard(getAdsList(MAX_CARDS)[0]);
+  insertAdvertCard();
+  renderFeatures();
+};
+
+functionCall();
