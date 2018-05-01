@@ -73,24 +73,20 @@ var getRandomNumber = function (min, max) {
 
 // Генерация одного случайного объекта (карточки) объявления
 
-var generateOneCard = function (index) {
+var generateCard = function (index) {
 
   var coordinateAdress = {
     x: getRandomNumber(MIN_X, MAX_X),
     y: getRandomNumber(MIN_Y, MAX_Y)
   };
-
   var checkIn = checkinTime[getRandomNumber(0, 3)];
   var checkOut = checkIn;
-
   var featuresCount = getRandomNumber(0, featuresList.length);
   var features = featuresList.slice(0, featuresCount + 1);
-
   var newObj = {
     author: {
       'avatar': 'img/avatars/user0' + (index + 1) + '.png'
     },
-
     offer: {
       'title': apartmentTypes[index],
       'address': coordinateAdress.x + ', ' + coordinateAdress.y,
@@ -104,9 +100,7 @@ var generateOneCard = function (index) {
       'description': '',
       'photos': photos
     },
-
     location: coordinateAdress
-
   };
   return newObj;
 };
@@ -115,14 +109,14 @@ var generateOneCard = function (index) {
 var getAdsList = function (cardsNumber) {
   var cardsData = [];
   for (var i = 0; i < cardsNumber; i++) {
-    cardsData.push(generateOneCard(i));
+    cardsData.push(generateCard(i));
   }
   return cardsData;
 };
 
 // Создаем метки на карте на основе массива данных объявлений и отрисовываем их
 
-var generateOnePin = function (offerData) {
+var generatePin = function (offerData) {
   var pinElement = mapPinTemplate.cloneNode(true);
   pinElement.style = 'left: ' + (offerData.location.x - PIN_WIDTH / 2) + 'px; top: ' + (offerData.location.y + PIN_HEIGHT) + 'px;';
   pinElement.querySelector('img').alt = offerData.offer.title;
@@ -133,7 +127,7 @@ var generateOnePin = function (offerData) {
 var renderPins = function (pins) {
   var pinFragment = document.createDocumentFragment();
   pins.forEach(function (item, i) {
-    pinFragment.appendChild(generateOnePin(item, i));
+    pinFragment.appendChild(generatePin(item, i));
   });
   return pinFragment;
 };
@@ -197,11 +191,11 @@ var insertAdvertCard = function () {
 document.querySelector('.map.map--faded').classList.remove('map--faded');
 
 // Вызовы функций
-var functionCall = function () {
+var renderAll = function () {
   pinsArea.appendChild(pins);
   renderCard(getAdsList(MAX_CARDS)[0]);
   insertAdvertCard();
   renderFeatures();
 };
 
-functionCall();
+renderAll();
